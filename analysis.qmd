@@ -1,0 +1,436 @@
+---
+title: "MATH 1320 Final Project"
+author: "Jacy Tate"
+format:
+  pdf:
+    toc: true
+    number-sections: true
+execute:
+  echo: true
+  warning: false
+  message: false
+---
+
+## Cover Information
+
+- **Student:** Jacy Tate\
+- **Section:** Math 1320 Intro to Probability and Statistics (In‑person)\
+- **Date:** 4/28/2026\
+
+------------------------------------------------------------------------
+
+## Executive Summary
+
+This project analyzed 45 days of Professor Kodipelly's smart watch data. The first task asked whether or not Professor Kodipelly is considered an active person. The results of the one-mean inference test showed that there was insufficient evidence to support the claim that he is an active person according to fitness guidelines. When using the two-mean inference test to determine whether Professor Kodipelly walks more on weekdays or weekends, the analysis showed that there was a clear difference in the average number of steps taken on weekdays versus weekends. However, we were unable to conclude whether or not he met his 10,000-step goal more than 90% of the days provided because the required assumptions to perform a one proportion z-test were not satisfied. When testing whether or not there was an association between meeting the step goal and the day of the week, a chi-square inference test concluded that there was no clear association. However, in task 6 a strong linear relationship was found between steps taken and active minutes using the linear regression test.
+
+------------------------------------------------------------------------
+
+## Introduction
+
+The dataset used for this project consisted of 45 days of fitness data provided by Professor Kodipelly's Pixel Watch 3, including daily step counts, active minutes, type of day (weekday or weekend), semester phases, and whether the daily step goal was met. The goal of each assigned task is to analyze the data and test the given hypotheses using statistical procedures such as one-mean and two-mean inference tests, chi-square inferences, ANOVA, and linear regression. All of these tests were conducted using a significance level of $\alpha = 0.05$.
+
+------------------------------------------------------------------------
+
+## Descriptive Statistics
+
+```{r}
+
+steps <- c(8843,7692,10516,8124,10218,6035,10142,
+           10872,7914,11043,8516,6284,5947,10083,
+           10391,7421,10182,7218,6631,5812,7421,
+           10509,7318,7819,7614,10843,6419,10652,
+           6412,10374,9247,10683,6841,10147,11178,
+           9847,10841,9934,9418,10572,6213,10936,
+           8214,9492, 11042)
+
+ActiveMinutes <- c(71,62,84,65,82,48,81,87,63,88,68,
+                   50,47,81,83,59,81,58,53,46,59,84,
+                   59,63,61,87,51,85,51,83,74,85,55,
+                   81,89,79,87,79,75,85,50,87,66,76,
+                   88)
+
+DayType <- c("Weekday","Weekday","Weekday","Weekday",
+             "Weekend","Weekend","Weekday","Weekday",
+             "Weekday","Weekday","Weekday","Weekend",
+             "Weekend","Weekday","Weekday","Weekday",
+             "Weekday","Weekday","Weekend","Weekend",
+             "Weekday","Weekday","Weekday","Weekday",
+             "Weekday","Weekend","Weekend","Weekday",
+             "Weekday","Weekday","Weekday","Weekday",
+             "Weekend","Weekend","Weekday","Weekday",
+             "Weekday","Weekday","Weekday","Weekend",
+             "Weekend","Weekday","Weekday","Weekday",
+             "Weekday")
+
+Phase <- c(rep("Phase1",15), rep("Phase2",15), rep("Phase3",15))
+
+MeetGoal <- c("No","No","Yes","No","Yes","No","Yes",
+              "Yes","No","Yes","No","No","No","Yes",
+              "Yes","No","Yes","No","No","No","No",
+              "Yes","No","No","No","Yes","No","Yes",
+              "No","Yes","No","Yes","No","Yes","Yes",
+              "No","Yes","No","No","Yes","No","Yes","No",
+              "No","Yes")
+
+```
+
+```{r}
+#Steps Summary
+length(steps);
+mean(steps); 
+median(steps); 
+sd(steps); 
+var(steps); 
+fivenum(steps); 
+summary(steps)
+hist(steps); 
+boxplot(steps, horizontal = TRUE)
+```
+
+```{r}
+#ActiveMinutes Summary
+length(ActiveMinutes);
+mean(ActiveMinutes); 
+median(ActiveMinutes);
+sd(ActiveMinutes); 
+var(ActiveMinutes); 
+fivenum(ActiveMinutes); 
+summary(ActiveMinutes)
+hist(ActiveMinutes); 
+boxplot(ActiveMinutes, horizontal = TRUE)
+```
+
+**Basic Summary:**
+
+The **steps** variable consists of 45 observations. The **average** number of steps per day is 8,886 steps, the **median** is 9,418 steps, and the **standard deviation** is 1,768.448 steps. The **ActiveMinutes** variable consists of 45 observations. The **average** number of active minutes per day is 71.02, the **median** is 75 minutes, and the **standard deviation** is 14.15095 minutes. Fitness data was recorded on 33 weekdays and 12 weekend days. The step goal of 10,000 steps was met 19 times and not met 26 times.
+
+------------------------------------------------------------------------
+
+## Task 1 — Is Professor Kodipelly actually an "active" person by the numbers? (One‑Mean Inference)
+
+$H_0$: $\mu$**=8,500**
+
+The null hypothesis states that the mean steps in a day taken by Professor Kodipelly are equal to the mean steps per day established by fitness apps and health guidelines that deem someone an active person.
+
+$H_A$: $\mu$**\>8,500**
+
+The alternative hypothesis states that the mean steps in a day taken by Professor Kodipelly are more than the mean steps per day established by fitness apps and health guidelines that deem someone an active person.
+
+**R analysis:**
+
+```{r}
+sigma <- 2000               # Known Pop SD
+mu_0 <- 8500                # Null Hypothesis Mean claim
+alpha<- .05
+data <- c(8843, 7692, 10516, 8124, 10218,
+          6035, 10142, 10872, 7914, 11043,
+          8516, 6284, 5947, 10083, 10391, 
+          7421, 10182, 7218, 6631, 5812,
+          7421, 10509, 7318, 7819, 7614, 
+          10843, 6419, 10652, 6412, 10374,
+          9247, 10683, 6841, 10147, 11178,
+          9847, 10841, 9934, 9418, 10572, 
+          6213, 10936, 8214, 9492, 11042)
+x_bar <- mean(data)
+n <- length(data)
+
+# 1. Z-Statistic
+z <- (x_bar - mu_0) / (sigma / sqrt(n))
+
+# Right-tailed (Ha: mu > mu0)
+p_right <- 1 - pnorm(z)
+
+#critical value
+criticalvalueright <- qnorm(1-alpha)
+
+# Output results
+z
+p_right
+criticalvalueright
+```
+
+**Decision: Fail to reject** $H_0$.
+
+There is insufficient evidence to reject the null hypothesis. The **test statistic** 1.294683 does not fall within the **critical value region** 1.644854, and the **p-value** 0.09771474 is greater than the **alpha** 0.05. This concludes that there is not enough evidence to consider Professor Kodipelly an active person.
+
+::: {}
+**Conclusion:**
+
+There is not enough evidence to conclude that Professor Kodipelly averages more than 8,500 steps per day, which is the criteria set by health guidelines to classify someone as an active person.
+:::
+
+------------------------------------------------------------------------
+
+## Task 2 — Does Professor Kodipelly walk more on weekdays or weekends? (Two‑Mean Inference)
+
+$H_0$: $\mu1$$=$$\mu2$
+
+The null hypothesis claims that the mean steps that Professor Kodipelly takes per day during the week is equal to the mean steps that he takes per day during the weekend.
+
+$H_A$: $\mu1$ $\not=$ $\mu2$
+
+The alternative hypothesis claims that the mean steps that Professor Kodipelly takes per day during the week is different than the mean steps that he takes per day during the weekend.
+
+**R analysis:**
+
+```{r}
+weekdays <- c(8843, 7692, 10516, 8124, 10142,
+              10872, 7914, 11043, 8516, 10083,
+              10391, 7421, 10182, 7218, 7421,
+              10509, 7318, 7819, 7614, 10652,
+              6412, 10374, 9247, 10683, 11178,
+              9847, 10841, 9934, 9418, 10936, 
+              8214, 9492, 11042)
+weekends <- c(10218, 6035, 6284, 5947, 6631,
+              5812, 10843, 6419, 6841, 10147,
+              10572, 6213)
+alpha <- 0.05            # Significance level
+
+# 2. Basic summaries:
+n1 <- length(weekdays)
+n2 <- length(weekends)
+x_bar1 <- mean(weekdays)
+x_bar2 <- mean(weekends)
+s1 <- sd(weekdays)
+s2 <- sd(weekends)
+
+# 3. t-statistic using separate variances:
+t <- (x_bar1 - x_bar2) / sqrt(s1^2/n1 + s2^2/n2)
+
+# 4. Approximate degrees of freedom (Welch-Satterthwaite):
+df_num <- (s1^2/n1 + s2^2/n2)^2
+df_den <- ((s1^2/n1)^2)/(n1 - 1) + ((s2^2/n2)^2)/(n2 - 1)
+df <- df_num / df_den
+
+# 5. Two-tailed test (H_a: mu1 != mu2):
+p_two <- 2 * (1 - pt(abs(t), df = df))
+critical_value_two_upper <- qt(1 - alpha/2, df = df)
+critical_value_two_lower <- qt(alpha/2, df = df)
+
+# 8. Two-sided Confidence Interval for (mu1 - mu2):
+CI_lower <- (x_bar1 - x_bar2) - critical_value_two_upper * sqrt(s1^2/n1 + s2^2/n2)
+CI_upper <- (x_bar1 - x_bar2) + critical_value_two_upper * sqrt(s1^2/n1 + s2^2/n2)
+
+# 9. Values you usually report:
+t
+df
+p_two
+critical_value_two_lower
+critical_value_two_upper
+CI_lower
+CI_upper
+```
+
+**Decision: Reject** $H_0$**.**
+
+There is sufficient evidence to reject the null hypothesis. The **test statistic** 2.564408 falls within the **critical value region** ±2.131914 and the **p-value** 0.0216040 is less than the **alpha** 0.05. This concludes that the average steps per day Professor Kodipelly takes differs between weekdays and weekends.
+
+**Confidence Interval Analysis:** We can be **95% confident** that the true difference in mean weekday steps and mean weekend steps is between **281.1517** and **3,052.939** steps.
+
+::: {}
+**Conclusion:**
+
+The average number of steps that Professor Kodipelly takes on weekdays is different than the average number of steps he takes on weekends.
+:::
+
+------------------------------------------------------------------------
+
+## Task 3 — Bold claim about hitting the step goal.(Proportion Inference)
+
+There is a claim that Professor Kodipelly reaches his 10,000-step goal on more than 90% of the 45 days recorded.
+
+**Assumptions**
+
+The assumptions required for a one-proportion z-test are that the data must be a simple random sample and the expected successes and expected failures must both be greater than or equal to 5.
+
+$p_0$ = 0.90
+
+$n$ = 45
+
+**Expected successes:** $n$$p_0$ = 45(0.90) = 40.5
+
+$n$$p_0$ $\geq$ 5
+
+**Expected failures:** $n$(1- $p_0$) = 45(1-.90) = 4.5
+
+$n$(1- $p_0$)\<5
+
+**Decision**: One proportion z-test is not appropriate.
+
+The data shows that the sample is a simple random sample, and the expected number of successes is 40.5, which is greater than 5. However, the expected number of failures is 4.5, which is less than 5. Therefore, the dataset does not meet **all** of the required assumptions and a one proportion z-test is not appropriate.
+
+::: {}
+**Conclusion:**
+
+The one proportion z-test is not appropriate for this task.
+:::
+
+------------------------------------------------------------------------
+
+## Task 4 — Is hitting the step goal related to the day of the week? (Chi‑Square Inference)
+
+**Observed counts:**
+
+| Day Type  | Met Goal | Did Not Meet Goal | Total  |
+|:---------:|:--------:|:-----------------:|:------:|
+|  Weekday  |    15    |        18         |   33   |
+|  Weekend  |    4     |         8         |   12   |
+| **Total** |  **19**  |      **26**       | **45** |
+
+**Hypotheses**\
+$H_0$: Day Type and Met Goal are independent (no association).
+
+\
+$H_A$: Day Type and Met Goal are not independent (associated).
+
+**R analysis:**
+
+```{r}
+M <- matrix(c(15, 18,
+              4, 8),
+            nrow = 2, byrow = TRUE)
+alpha<-0.05
+E  <- outer(rowSums(M), colSums(M)) / sum(M)
+X2 <- sum( (M - E)^2 / E )
+df <- (nrow(M)-1)*(ncol(M)-1)
+p  <- 1 - pchisq(X2, df)
+crit_val<-qchisq(1-alpha, df)
+X2;
+p; 
+crit_val;
+E
+```
+
+**Assumptions**:
+
+The **primary assumption** for the Chi‑Square Test of Independence is that the **expected frequency in each cell is at least 5**.\
+In this analysis, the minimum expected count is 5.066667, so the assumption is satisfied and the Chi‑Square test is appropriate.
+
+**Decision: Fail to reject** $H_0$.
+
+There is insufficient evidence to reject the null hypothesis. The **test statistic** 0.5299963 does not fall within the **critical value** **region** 3.841459, and the **p‑value** 0.4666084 is greater than the **alpha** 0.05. This concludes that there is not enough evidence to prove there is an association.
+
+::: {}
+\*\*Conclusion:\*\* The analysis shows that the difference in whether the step goal was met or not between the two types of days is small, meaning that the day of the week and meeting the step goal are independent factors in this sample. There is no conclusive evidence of an association.
+:::
+
+------------------------------------------------------------------------
+
+## Task 5 — Did Professor Kodipelly's activity level change across the three phases of the semester? (ANOVA)
+
+$H_0$: $\mu1$ = $\mu2$ = $\mu3$
+
+The null hypothesis claims that the mean of each phase is equal.
+
+$H_A$: **At least one mean is different**
+
+The alternative hypothesis states that at least one of the phases has a different mean.
+
+**R analysis:**
+
+```{r}
+Group <- rep ( c ( " Phase 1 (Jan 20-Feb 3) " ,
+                   " Phase 2 (Feb 4-Feb 18) " , 
+                   " Phase 3 (Feb 19-Mar 5) ") , 
+               times = c (15, 15, 15) )
+X <- c (8843,7692,10516,8124,10218,6035,10142,
+        10872,7914,11043,8516,6284,5947,10083,
+        10391, 7421,10182,7218,6631,5812,7421,
+        10509,7318,7819,7614,10843,6419,10652,
+        6412,10374, 9247,10683,6841,10147,11178,
+        9847,10841,9934,9418,10572,6213,10936,
+        8214,9492,11042)
+n <- c(15, 15, 15)
+# Middle Steps : Find Group Means and Grand Mean
+tapply (X , Group , mean )
+mean ( X )
+# Build ANOVA Table ( which gives SSTR and SSE directly )
+fit <- aov ( X ~ Group )
+anova ( fit )
+N    <- sum(n)
+df1  <- length(n) - 1
+df2  <- N - length(n)
+criticalvalue <-qf(0.95, df1, df2);
+
+#outputs
+criticalvalue
+```
+
+**Decision: Do not reject** $H_0$**.**
+
+There is insufficient evidence to reject the null hypothesis. The **F statistic** 2.7864 does not fall within the **critical value region** 3.219942 and the **p-value** 0.07306 is greater than the **alpha** 0.05.
+
+::: {}
+**Conclusion:**
+
+There is not enough evidence to conclude that there is a difference in means in any of the three phases.
+:::
+
+------------------------------------------------------------------------
+
+## Task 6 —Can step count help predict active minutes?(Linear Regression)
+
+$H_0$: $\beta1$ = 0
+
+The null hypothesis states that there is no linear relationship between steps and active minutes.
+
+$H_A$: $\beta1$ $\not=$ 0
+
+The alternative hypothesis states there is a linear relationship between steps and active minutes.
+
+**R analysis:**
+
+```{r}
+steps <- c(8843,7692,10516,8124,10218,6035,
+           10142,10872,7914,11043,8516,6284,
+           5947,10083,10391,7421,10182,7218,
+           6631,5812,7421,10509,7318,7819,7614,
+           10843,6419,10652,6412,10374,9247,
+           10683,6841,10147,11178,9847,10841,
+           9934,9418,10572,6213,10936,8214,
+           9492,11042)
+
+ActiveMinutes <- c(71,62,84,65,82,48,81,87,63,
+                   88,68,50,47,81,83,59,81,58,
+                   53,46,59,84,59,63,61,87,51,
+                   85,51,83,74,85,55,81,89,79,
+                   87,79,75,85,50,87,66,76,88)
+
+model <- lm(ActiveMinutes ~ steps)
+summary(model);
+coef(model);
+plot(steps, ActiveMinutes);
+cor(steps, ActiveMinutes);
+confint(model, level = 0.95)
+
+```
+
+**Question**: If Professor Kodipelly walks 1,000 more steps tomorrow, how many more active minutes should he expect the watch to record?
+
+**x=steps** and **ŷ=ActiveMinutes**
+
+**Fitted Regression equation**: ŷ**=** $b_0$ + $b_1x$
+
+**ActiveMinutes**= -0.065581984+0.007999978(1,000) = 7.934396016
+
+**Proportion of Variability: R^2^** = 0.9995
+
+**Analysis:** For every additional 1,000 steps taken, he can expect the number of active minutes to increase by approximately **7.934 minutes**. **99.95%** of the variation in ActiveMinutes can be explained by the regression line.
+
+**Confidence Interval Analysis:** We can be **95% confident** that the true increase in active minutes for every additional 1,000 steps is between approximately **7.946** and **8.054** minutes.
+
+**Decision: Reject** $H_0$.
+
+There is sufficient evidence to reject the null hypothesis. The **p-value** 0 is less than the **alpha** 0.05.
+
+::: {}
+**Conclusion:**
+
+There is enough evidence to conclude that the step count is a predictor of active minutes. The graph shows that as the step count increases, so does the number of active minutes.
+:::
+
+------------------------------------------------------------------------
+
+## Discussion
+
+Overall, the tests showed that Professor Kodipelly's activity level changed depending on the situation. The average step count was not quite high enough to consider him an "active" person, but there was a distinct difference between weekdays and weekend days. The results also showed a strong linear relationship between step count and active minutes, proving that higher step counts were associated with higher active minutes per day. One test could not be completed because the required assumptions were not met. Activity patterns were a bit inconsistent, however step count still proved to be a useful measure of activity level.
